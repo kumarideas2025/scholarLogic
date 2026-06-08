@@ -1,0 +1,6 @@
+{
+  "name": "ScholarLogic AI",
+  "description": "An AI-powered college counselor, adaptive matching dashboard, and personalized scholarship finder.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
