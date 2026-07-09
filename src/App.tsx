@@ -1,19 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { OverviewTab } from "./components/OverviewTab";
 import { MatchingTab } from "./components/MatchingTab";
 import { ProfileBuilderTab } from "./components/ProfileBuilderTab";
 import { CounselorTab } from "./components/CounselorTab";
-import { 
-   INITIAL_UNIVERSITIES, 
-   INITIAL_SCHOLARSHIPS, 
-   INITIAL_ACTIVITIES, 
-   INITIAL_DEADLINES,
-   DeadlineItem,
-   University,
-   Scholarship,
-   Activity
-} from "./types";
+import { getUniversities, getScholarships, getActivities, getDeadlines } from "./services/catalog";
+import { University, Scholarship, Activity, DeadlineItem } from "./types";
 
 export default function App() {
   // Navigation tabs state switcher
@@ -30,13 +22,47 @@ export default function App() {
   // Strength calibration tracking (out of 100)
   const [profileStrength, setProfileStrength] = useState(85);
 
-  // Lists databases lists reactive states
-  const [universities, setUniversities] = useState<University[]>(INITIAL_UNIVERSITIES);
-  const [scholarships, setScholarships] = useState<Scholarship[]>(INITIAL_SCHOLARSHIPS);
-  const [activities, setActivities] = useState<Activity[]>(INITIAL_ACTIVITIES);
-  const [deadlines, setDeadlines] = useState<DeadlineItem[]>(INITIAL_DEADLINES);
+  // Catalog data fetched from the live backend API
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [deadlines, setDeadlines] = useState<DeadlineItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [userName, setUserName] = useState("Kowshik Sarker");
   const [isEditingName, setIsEditingName] = useState(false);
+
+  // Load catalog content from the API on mount
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [u, s, a, d] = await Promise.all([
+          getUniversities(),
+          getScholarships(),
+          getActivities(),
+          getDeadlines(),
+        ]);
+        if (!active) return;
+        setUniversities(u);
+        setScholarships(s);
+        setActivities(a);
+        setDeadlines(d);
+      } catch (e) {
+        if (!active) return;
+        setError(e instanceof Error ? e.message : "Failed to load data");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Helper to get initials
   const getInitials = (name: string) => {
@@ -51,15 +77,15 @@ export default function App() {
   return (
     <div className="flex h-screen bg-[#fcfcfc] overflow-hidden font-sans">
       {/* Dynamic Left Nav sidebar rail */}
-      <Sidebar 
-        currentTab={currentTab} 
-        setTab={setCurrentTab} 
-        profileStrength={profileStrength} 
+      <Sidebar
+        currentTab={currentTab}
+        setTab={setCurrentTab}
+        profileStrength={profileStrength}
       />
 
       {/* Main Dashboard body content area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        
+
         {/* Top Header Panel Section */}
         <header className="bg-white border-b border-[#eaeaea] px-8 py-4 flex items-center justify-between flex-shrink-0 z-10">
           <div>
@@ -98,8 +124,8 @@ export default function App() {
                     <button onClick={() => setIsEditingName(false)} className="text-[10px] text-green-600 hover:text-green-800 font-bold cursor-pointer">✔</button>
                   </div>
                 ) : (
-                  <div 
-                    onClick={() => setIsEditingName(true)} 
+                  <div
+                    onClick={() => setIsEditingName(true)}
                     className="cursor-pointer group flex items-center justify-end space-x-1"
                     title="Click to edit advisee name"
                   >
@@ -119,38 +145,50 @@ export default function App() {
         {/* Dynamic Inner Tab Router */}
         <main className="flex-1 overflow-y-auto p-8 bg-[#fcfcfc]">
           <div className="max-w-7xl mx-auto">
-            {currentTab === "overview" && (
-              <OverviewTab
-                universities={universities}
-                scholarships={scholarships}
-                activities={activities}
-                deadlines={deadlines}
-                setDeadlines={setDeadlines}
-                profileStrength={profileStrength}
-                userName={userName}
-                setTab={setCurrentTab}
-              />
-            )}
+            {loading ? (
+              <div className="flex items-center justify-center h-64 text-neutral-400 font-mono text-sm">
+                Loading…
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center h-64 text-red-500 font-mono text-sm text-center px-4">
+                Failed to load: {error}
+              </div>
+            ) : (
+              <>
+                {currentTab === "overview" && (
+                  <OverviewTab
+                    universities={universities}
+                    scholarships={scholarships}
+                    activities={activities}
+                    deadlines={deadlines}
+                    setDeadlines={setDeadlines}
+                    profileStrength={profileStrength}
+                    userName={userName}
+                    setTab={setCurrentTab}
+                  />
+                )}
 
-            {currentTab === "matcher" && (
-              <MatchingTab
-                universities={universities}
-                userFilters={userFilters}
-              />
-            )}
+                {currentTab === "matcher" && (
+                  <MatchingTab
+                    universities={universities}
+                    userFilters={userFilters}
+                  />
+                )}
 
-            {currentTab === "profile" && (
-              <ProfileBuilderTab
-                userFilters={userFilters}
-                setUserFilters={setUserFilters}
-                setProfileStrength={setProfileStrength}
-                userName={userName}
-                setUserName={setUserName}
-              />
-            )}
+                {currentTab === "profile" && (
+                  <ProfileBuilderTab
+                    userFilters={userFilters}
+                    setUserFilters={setUserFilters}
+                    setProfileStrength={setProfileStrength}
+                    userName={userName}
+                    setUserName={setUserName}
+                  />
+                )}
 
-            {currentTab === "counselor" && (
-              <CounselorTab />
+                {currentTab === "counselor" && (
+                  <CounselorTab />
+                )}
+              </>
             )}
           </div>
         </main>
