@@ -6,8 +6,12 @@ import {
   getAssignments,
   submitAssignment,
   gradeSubmission,
+  updateAssignment,
+  deleteAssignment,
   createResource,
   getResources,
+  updateResource,
+  deleteResource,
 } from '../controllers/contentController.js';
 import { RequireAuth, RequireRole } from '../middlewares/auth.js';
 import { validate } from '../middlewares/validate.js';
@@ -30,10 +34,14 @@ assignmentRouter.post('/', RequireAuth, RequireRole('teacher', 'admin'), validat
 assignmentRouter.get('/', RequireAuth, getAssignments);
 assignmentRouter.post('/:id/submit', RequireAuth, RequireRole('student'), submitAssignment);
 assignmentRouter.post('/:id/grade/:studentId', RequireAuth, RequireRole('teacher', 'admin'), gradeSubmission);
+assignmentRouter.patch('/:id', RequireAuth, RequireRole('teacher', 'admin'), updateAssignment);
+assignmentRouter.delete('/:id', RequireAuth, RequireRole('teacher', 'admin'), deleteAssignment);
 
 // Resources
 const resourceRouter = Router();
 resourceRouter.post('/', RequireAuth, validate(createResourceSchema), createResource);
 resourceRouter.get('/', RequireAuth, getResources);
+resourceRouter.patch('/:id', RequireAuth, updateResource);
+resourceRouter.delete('/:id', RequireAuth, deleteResource);
 
 export { subjectRouter, assignmentRouter, resourceRouter };

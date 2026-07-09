@@ -3,6 +3,7 @@ import createApp from '../app.js';
 import User from '../models/User.js';
 import Token from '../models/Token.js';
 import { hashToken, generateRandomToken } from '../utils/token.js';
+import { describeDb } from './setup.js';
 
 /**
  * Authentication Integration Tests
@@ -21,7 +22,7 @@ const validUser = {
   password: 'Passw0rd!23',
 };
 
-describe('Auth API', () => {
+describeDb('Auth API', () => {
   describe('POST /register', () => {
     it('registers a new user and returns tokens', async () => {
       const res = await request(app).post(`${BASE}/register`).send(validUser);

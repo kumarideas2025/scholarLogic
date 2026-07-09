@@ -50,6 +50,21 @@ export const gradeSubmission = asyncHandler(async (req, res) => {
   ApiResponse.success('Submission graded', { assignment: result }).send(res);
 });
 
+export const updateAssignment = asyncHandler(async (req, res) => {
+  const result = await contentService.updateAssignment(
+    req.params.id,
+    req.body,
+    req.user.id,
+    req.user.role
+  );
+  ApiResponse.success('Assignment updated', { assignment: result }).send(res);
+});
+
+export const deleteAssignment = asyncHandler(async (req, res) => {
+  await contentService.deleteAssignment(req.params.id, req.user.id, req.user.role);
+  ApiResponse.success('Assignment deleted').send(res);
+});
+
 export const createResource = asyncHandler(async (req, res) => {
   const resource = await contentService.createResource(req.body, req.user.id);
   ApiResponse.created('Resource created', { resource }).send(res);
@@ -60,6 +75,21 @@ export const getResources = asyncHandler(async (req, res) => {
   ApiResponse.success('Resources retrieved', { resources }, metadata).send(res);
 });
 
+export const updateResource = asyncHandler(async (req, res) => {
+  const result = await contentService.updateResource(
+    req.params.id,
+    req.body,
+    req.user.id,
+    req.user.role
+  );
+  ApiResponse.success('Resource updated', { resource: result }).send(res);
+});
+
+export const deleteResource = asyncHandler(async (req, res) => {
+  await contentService.deleteResource(req.params.id, req.user.id, req.user.role);
+  ApiResponse.success('Resource deleted').send(res);
+});
+
 export default {
   createSubject,
   getSubjects,
@@ -67,6 +97,10 @@ export default {
   getAssignments,
   submitAssignment,
   gradeSubmission,
+  updateAssignment,
+  deleteAssignment,
   createResource,
   getResources,
+  updateResource,
+  deleteResource,
 };

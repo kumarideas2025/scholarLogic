@@ -74,6 +74,27 @@ export const gradeSubmission = async (assignmentId, studentId, grade, feedback) 
   return assignment.toObject();
 };
 
+export const updateAssignment = async (assignmentId, data, userId, userRole) => {
+  const assignment = await Assignment.findById(assignmentId);
+  if (!assignment) throw ApiError.notFound('Assignment not found', 'ASSIGNMENT_NOT_FOUND');
+  if (userRole !== 'admin' && assignment.createdBy.toString() !== userId) {
+    throw ApiError.forbidden('Not allowed to update this assignment', 'ASSIGNMENT_FORBIDDEN');
+  }
+  Object.assign(assignment, data);
+  await assignment.save();
+  return assignment.toObject();
+};
+
+export const deleteAssignment = async (assignmentId, userId, userRole) => {
+  const assignment = await Assignment.findById(assignmentId);
+  if (!assignment) throw ApiError.notFound('Assignment not found', 'ASSIGNMENT_NOT_FOUND');
+  if (userRole !== 'admin' && assignment.createdBy.toString() !== userId) {
+    throw ApiError.forbidden('Not allowed to delete this assignment', 'ASSIGNMENT_FORBIDDEN');
+  }
+  await assignment.deleteOne();
+  return { success: true };
+};
+
 // ---------- Resources ----------
 export const createResource = async (data, uploadedBy) => {
   const resource = await Resource.create({ ...data, uploadedBy });
@@ -100,6 +121,37 @@ export const getResources = async (query = {}) => {
   return { resources, metadata: getPaginationMetadata(total, page, limit) };
 };
 
+export const updateResource = async (resourceId, data, userId, userRole) => {
+  const resource = await Resource.findById(resourceId);
+  if (!resource) throw ApiError.notFound('Resource not found', 'RESOURCE_NOT_FOUND');
+  if (userRole !== 'admin' && resource.uploadedBy.toString() !== userId) {
+    throw ApiError.forbidden('Not allowed to update this resource', 'RESOURCE_FORBIDDEN');
+  }
+  Object.assign(resource, data);
+  await resource.save();
+  return resource.toObject();
+};
+
+export const deleteResource = async (resourceId, userId, userRole) => {
+  const resource = await Resource.findById(resourceId);
+  if (!resource) throw ApiError.notFound('Resource not found', 'RESOURCE_NOT_FOUND');
+  if (userRole !== 'admin' && resource.uploadedBy.toString() !== userId) {
+    throw ApiError.forbidden('Not allowed to delete this resource', 'RESOURCE_FORBIDDEN');
+  }
+  // Remove underlying file from storage if one is linked
+  if (resource.file) {
+    const File = (await import('../models/File.js')).default;
+    const fileDoc = await File.findById(resource.file);
+    if (fileDoc) {
+      const { deleteImage } = await import('../config/cloudinary.js');
+      if (fileDoc.publicId) await deleteImage(fileDoc.publicId).catch(() => {});
+      await fileDoc.deleteOne();
+    }
+  }
+  await resource.deleteOne();
+  return { success: true };
+};
+
 export default {
   createSubject,
   getSubjects,
@@ -107,6 +159,10 @@ export default {
   getAssignments,
   submitAssignment,
   gradeSubmission,
+  updateAssignment,
+  deleteAssignment,
   createResource,
   getResources,
+  updateResource,
+  deleteResource,
 };

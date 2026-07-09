@@ -2,6 +2,7 @@ import request from 'supertest';
 import createApp from '../app.js';
 import User from '../models/User.js';
 import { generateToken } from '../utils/token.js';
+import { describeDb } from './setup.js';
 
 /**
  * User Module Integration Tests
@@ -25,7 +26,7 @@ const signup = async (overrides = {}) => {
   return { user, body: res.body };
 };
 
-describe('User API', () => {
+describeDb('User API', () => {
   it('GET /me returns the authenticated user', async () => {
     const { body } = await signup();
     const token = body.data.accessToken;
