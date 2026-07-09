@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -60,7 +61,13 @@ const createApp = () => {
 
   // --- Health check ---
   app.get('/health', (req, res) => {
-    ApiResponse.success('Server is healthy').send(res);
+    const dbState = mongoose.connection.readyState;
+    const dbHealthy = dbState === 1; // 1 = connected
+    const status = dbHealthy ? 200 : 503;
+    ApiResponse.success(
+      dbHealthy ? 'Server is healthy' : 'Server degraded: database unavailable',
+      { database: dbHealthy ? 'connected' : 'disconnected' }
+    ).send(res.status(status));
   });
 
   // --- API routes (mounted incrementally per module) ---
