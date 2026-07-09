@@ -11,6 +11,12 @@ import sanitize from './middlewares/sanitize.js';
 import errorHandler from './middlewares/errorHandler.js';
 import notFound from './middlewares/notFound.js';
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import { subjectRouter, assignmentRouter, resourceRouter } from './routes/contentRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import setupApiDocs from './docs/apiDocs.js';
 import ApiResponse from './utils/ApiResponse.js';
 import logger from './utils/logger.js';
 
@@ -59,6 +65,16 @@ const createApp = () => {
 
   // --- API routes (mounted incrementally per module) ---
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/users', userRoutes);
+  app.use('/api/v1/courses', courseRoutes);
+  app.use('/api/v1/subjects', subjectRouter);
+  app.use('/api/v1/assignments', assignmentRouter);
+  app.use('/api/v1/resources', resourceRouter);
+  app.use('/api/v1/notifications', notificationRoutes);
+  app.use('/api/v1/admin', adminRoutes);
+
+  // --- API documentation ---
+  setupApiDocs(app);
 
   // --- 404 & error handling ---
   app.use(notFound);

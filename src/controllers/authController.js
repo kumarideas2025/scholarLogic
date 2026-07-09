@@ -1,6 +1,6 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
-import { authService } from '../services/authService.js';
+import authService from '../services/authService.js';
 import { refreshTokenCookieOptions } from '../utils/cookieOptions.js';
 import logger from '../utils/logger.js';
 

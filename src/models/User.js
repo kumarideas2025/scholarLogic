@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
 );
 
 // --- Indexes ---
-userSchema.index({ email: 1 });
+// Note: `email` unique index is declared on the field; `role+status` for admin dashboards.
 userSchema.index({ role: 1, status: 1 });
 
 // --- Virtuals ---
