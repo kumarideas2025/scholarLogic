@@ -1,8 +1,32 @@
+# Dependencies
 node_modules/
-build/
-dist/
-coverage/
-.DS_Store
+package-lock.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
 *.log
-.env*
-!.env.example
+npm-debug.log*
+
+# Uploads (local, Cloudinary is used in prod)
+src/uploads/*
+!src/uploads/.gitkeep
+
+# Build output
+dist/
+build/
+
+# Coverage
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
